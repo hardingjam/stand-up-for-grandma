@@ -1,0 +1,13 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    width: 100px;
+}
+#canv {
+    border: 2px solid red;
+}
