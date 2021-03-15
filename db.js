@@ -10,10 +10,9 @@ module.exports.getSignatures = function () {
 
 // often queries will take input from the user!
 // use template strings to include arguments.
-module.exports.addSignature = function (firstname, lastname, signature) {
-    return db.query(
-        `INSERT INTO signature (first_name, last_name, signature) VALUES ($1 $2);`,
-        // this prevents malicious queries from being entered. Sanitizes the user input
-        [firstname, lastname, signature]
-    );
+module.exports.addSignature = function (firstName, lastName, signature) {
+    const query = `INSERT INTO signature (first_name, last_name, signature) VALUES ($1, $2, $3) RETURNING id;`;
+    // returning id
+    const params = [firstName, lastName, signature];
+    return db.query(query, params);
 };
