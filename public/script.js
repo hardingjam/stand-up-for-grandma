@@ -15,13 +15,13 @@
         drawing = true;
         canvas.toggleClass(".pencursor");
         ctx.beginPath();
-        ctx.moveTo(e.originalEvent.layerX, e.originalEvent.layerY - 80);
+        ctx.moveTo(e.originalEvent.layerX, e.originalEvent.layerY - 15);
         // specify a style, which is always a colour
     });
 
     canvas.mousemove(function (e) {
         if (drawing) {
-            ctx.lineTo(e.originalEvent.layerX, e.originalEvent.layerY - 80);
+            ctx.lineTo(e.originalEvent.layerX, e.originalEvent.layerY - 15);
             ctx.strokeStyle = "black";
             ctx.lineWidth = 3;
             ctx.stroke();
