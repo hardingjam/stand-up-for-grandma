@@ -1,10 +1,11 @@
 
     <h1>HOMEPAGE!</h1>
     <form method="POST">
-        <input name="firstName" placeholder="First"/>
-        <input name="lastName" placeholder="Last"/>
-        <input name="signature" placeholder="sig">
+        <input name="firstName" placeholder="First" required/>
+        <input name="lastName" placeholder="Last" required/>
+        <input id="hiddenInput" name="signature" type="hidden">
         <canvas id="canv"></canvas>
-        <button type="submit">Submit</button>
+        <button type="submit" id="submit">Submit</button>
     </form>
+        <button id="clear">Clear signature</button>
 

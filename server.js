@@ -34,9 +34,8 @@ app.get("/", (req, res) => {
 app.get("/petition", (req, res) => {
     console.log("req.session in peitions route: ", req.session);
     getSignatures().then((data) => {
-        // log the data
-        // console.log(data.rows);
         const signeesData = data.rows;
+        console.log(signeesData);
         res.render("petition", {
             title: "Petition",
         });

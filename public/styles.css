@@ -3,6 +3,10 @@
     margin: 0;
 }
 
+.pencursor {
+    cursor: url("./cursor.svg");
+}
+
 form {
     display: flex;
     flex-direction: column;
@@ -10,4 +14,5 @@ form {
 }
 #canv {
     border: 2px solid red;
+    width: 300px;
 }
