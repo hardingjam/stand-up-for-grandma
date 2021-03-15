@@ -18,7 +18,17 @@ module.exports.addSignature = function (firstName, lastName, signature) {
 };
 
 module.exports.autograph = function (signatureId) {
-    const query = `SELECT signature FROM signature WHERE id = ${signatureId}`;
+    const query = `SELECT signature, first_name FROM signature WHERE id = $1;`;
     // refactor to prevent SQL injection
+    const params = [signatureId];
+    return db.query(query, params);
+};
+
+module.exports.fullNames = function () {
+    const query = `SELECT first_name, last_name FROM signature;`;
     return db.query(query);
 };
+
+// get everything - res.data.rows
+// just the names,
+// render

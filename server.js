@@ -1,5 +1,5 @@
 const express = require("express");
-const { getSignatures, addSignature, autograph } = require("./db");
+const { getSignatures, addSignature, autograph, fullNames } = require("./db");
 const app = express();
 const hb = require("express-handlebars");
 const cookieParser = require("cookie-parser");
@@ -71,7 +71,6 @@ app.post("/petition", (req, res) => {
         console.log("submitted signature");
         console.log("singee ID: ", data.rows[0].id);
         req.session.signatureId = data.rows[0].id;
-
         res.redirect("thanks");
     });
 });
@@ -80,9 +79,11 @@ app.get("/thanks", (req, res) => {
     const signerId = req.session.signatureId;
     console.log("signerId:", signerId);
     autograph(signerId).then((data) => {
+        console.log(data.rows);
         res.render("thanks", {
             title: "Thank you",
             imgUrl: data.rows[0].signature,
+            name: data.rows[0].first_name,
         });
     });
 });
@@ -90,7 +91,16 @@ app.get("/thanks", (req, res) => {
 app.get("/signedby", (req, res) => {
     req.statusCode = 200;
     console.log(req.statusCode);
-    res.render("signedby");
+    // the data i want is only the firstnames
+    fullNames().then((data) => {
+        res.render("signedby", {
+            signers: data.rows,
+        });
+    });
+});
+
+app.get("/privacy", (req, res) => {
+    res.render("privacy");
 });
 
 app.listen(8080, () => console.log("listening on 8080..."));

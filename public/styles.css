@@ -25,7 +25,7 @@ h2 {
     color: #336d88;
     font-weight: 400;
     margin-bottom: 5px;
-    font-size: 1.2rem;
+    font-size: 1.3rem;
 }
 
 .navbar {
@@ -79,12 +79,14 @@ h2 {
 }
 
 input {
-    background-color: white;
-    border: 1px solid grey;
+    background-color: #fae5ee;
+    border: none;
     margin-bottom: 10px;
     height: 2rem;
     font-size: 1rem;
     width: 300px;
+    padding-left: 5px;
+    border-radius: 10px;
 }
 
 #signature {
@@ -121,8 +123,18 @@ form {
     right: 0px;
     bottom: 5px;
     background-color: white;
+    color: grey;
     border: none;
     cursor: pointer;
+    border-bottom-right-radius: 10px;
+    border-top-left-radius: 10px;
+    transition: 200ms;
+}
+
+#clear:hover {
+    transition: 200ms;
+    background-color: white;
+    color: #33708d;
 }
 
 #submit {
@@ -132,10 +144,12 @@ form {
     font-size: 1rem;
     border-radius: 10px;
     border: 2px solid white;
-    background-color: #4490b3;
+    background-color: #8bc3dd;
     color: white;
-    cursor: pointer;
     transition: 200ms;
+    cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'  width='40' height='48' viewport='0 0 100 100' style='fill:black;font-size:24px;'><text y='50%'>👵🏼</text></svg>")
+            16 0,
+        auto;
 }
 
 #submit:hover {
@@ -145,8 +159,9 @@ form {
 }
 
 #canv {
-    background-color: white;
+    background-color: #fae5ee;
     margin-top: 15px;
+    border-radius: 10px;
 }
 
 footer {
@@ -156,4 +171,8 @@ footer {
     padding: 5px;
     background-color: #f7d6e4;
     width: 100%;
+}
+
+.signers {
+    column-count: 3;
 }
