@@ -3,6 +3,10 @@
     margin: 0;
 }
 
+.hidden {
+    display: none;
+}
+
 body {
     background-color: #f6bed6;
     font-family: "Montserrat";
@@ -15,7 +19,7 @@ body {
 }
 
 h1 {
-    color: #1d1b38;
+    color: #4b4a5c;
     font-weight: 400;
     font-size: 2rem;
     margin-bottom: 1rem;
@@ -39,6 +43,11 @@ h2 {
     font-size: 1.2rem;
     height: 2rem;
     text-align: right;
+}
+
+#grandmaEmoji {
+    font-size: 100pt;
+    text-align: center;
 }
 
 .navbar > a {
@@ -76,6 +85,13 @@ h2 {
     display: flex;
     flex-direction: column;
     flex: 0;
+}
+
+.error {
+    color: red;
+    font-size: 10pt;
+    padding-top: 10px;
+    text-align: center;
 }
 
 input {
@@ -175,4 +191,14 @@ footer {
 
 .signers {
     column-count: 3;
+}
+
+.country {
+    transition: 200ms;
+}
+
+.hover {
+    background-color: #d8e2dc;
+    transition: 600ms;
+    cursor: pointer;
 }

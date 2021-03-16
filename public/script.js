@@ -6,9 +6,13 @@
     let drawing = false;
     const clearButton = $("#clear");
     const sigInput = $("#hiddenInput");
-
+    const allContent = $("#page");
     canvas.mouseenter(function () {
         console.log("mouseenter");
+    });
+
+    $(window).on("load", function () {
+        allContent.fadeIn(800);
     });
 
     canvas.mousedown(function (e) {
