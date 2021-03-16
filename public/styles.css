@@ -63,7 +63,6 @@ h2 {
 }
 
 .demands {
-    margin-top: 30px;
     /* max-width: 600px; */
     display: flex;
     flex-direction: column;
@@ -127,7 +126,6 @@ input {
     justify-content: center;
     flex-direction: column;
     align-content: center;
-    margin-top: 20px;
 }
 
 form {

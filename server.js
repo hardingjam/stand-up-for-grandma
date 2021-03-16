@@ -7,6 +7,7 @@ const {
     createUser,
     login,
     getPassword,
+    checkForSig,
 } = require("./db");
 const app = express();
 const hb = require("express-handlebars");
@@ -53,7 +54,11 @@ app.get("/logout", (req, res) => {
 app.get("/", (req, res) => {
     console.log("req.session in slash route: ", req.session);
     if (req.session.userId) {
-        res.redirect("/petition");
+        if (req.session.signatureId) {
+            res.redirect("/thanks");
+        } else {
+            res.redirect("/petition");
+        }
     } else {
         res.redirect("/login");
     }
@@ -64,14 +69,19 @@ app.get("/register", (req, res) => {
     if (req.session.userId) {
         res.render("register", {
             registered: true,
+            Title: "Register Now",
         });
     } else {
-        res.render("register");
+        res.render("register", {
+            Title: "Register Now",
+        });
     }
 });
 
 app.get("/login", (req, res) => {
-    res.render("login");
+    res.render("login", {
+        Title: "Please Log In",
+    });
 });
 
 app.post("/login", (req, res) => {
@@ -79,25 +89,30 @@ app.post("/login", (req, res) => {
     const { email, password } = req.body;
     getPassword(email)
         .then(({ rows }) => {
-            compare(password, rows[0].password)
-                .then((match) => {
-                    console.log("match: ", match);
-                    if (match) {
-                        console.log("successful login!");
-                        req.session.userId = rows[0].id;
-                        res.redirect("/petition");
-                    } else {
-                        res.render("login", {
-                            wrongPassword: true,
+            compare(password, rows[0].password).then((match) => {
+                console.log("match: ", match);
+                if (match) {
+                    console.log("successful login!");
+                    req.session.userId = rows[0].id;
+                    const user = rows[0].id;
+                    checkForSig(user)
+                        .then(({ rows }) => {
+                            if (rows[0]) {
+                                req.session.signatureId = rows[0].id;
+                                res.redirect("/thanks");
+                            } else {
+                                res.redirect("/petition");
+                            }
+                        })
+                        .catch((err) => {
+                            console.log("error in checkForSig: ", err);
                         });
-                    }
-                })
-                .catch((err) => {
-                    console.log("Wrong password! ", err);
+                } else {
                     res.render("login", {
                         wrongPassword: true,
                     });
-                });
+                }
+            });
         })
         .catch((err) => {
             console.log("error: ", err);
@@ -111,20 +126,27 @@ app.get("/petition", (req, res) => {
     if (!req.session.userId) {
         res.redirect("/login");
     }
-    console.log("req.session in peitions route: ", req.session);
-    res.render("petition", {
-        title: "Petition",
-    });
+    if (req.session.signatureId) {
+        res.redirect("/thanks");
+    } else {
+        res.render("petition", {
+            title: "Petition",
+        });
+    }
 });
 
 app.post("/petition", (req, res) => {
     const userId = req.session.userId;
     const { signature } = req.body;
-    addSignature(userId, signature).then((data) => {
-        console.log("submitted signature");
-        req.session.signatureId = data.rows[0].id;
-        res.redirect("thanks");
-    });
+    addSignature(signature, userId)
+        .then((data) => {
+            console.log("submitted signature");
+            req.session.signatureId = data.rows[0].id;
+            res.redirect("/thanks");
+        })
+        .catch((err) => {
+            console.log("error: ", err);
+        });
 });
 
 app.post("/register", (req, res) => {
@@ -149,14 +171,13 @@ app.get("/thanks", (req, res) => {
     if (!req.session.userId) {
         res.redirect("/login");
     }
-    const signerId = req.session.signatureId;
-    console.log("signerId:", signerId);
-    autograph(signerId).then((data) => {
-        console.log(data.rows);
+    autograph(req.session.userId).then(({ rows }) => {
+        console.log(rows[0]);
+        const { name, signature } = rows[0];
         res.render("thanks", {
-            title: "Thank you",
-            imgUrl: data.rows[0].signature,
-            name: data.rows[0].first_name,
+            title: "Thank you!",
+            name: name,
+            autograph: signature,
         });
     });
 });
@@ -164,18 +185,19 @@ app.get("/thanks", (req, res) => {
 app.get("/signedby", (req, res) => {
     if (!req.session.userId) {
         res.redirect("/login");
-    }
-    console.log(req.statusCode);
-    // the data i want is only the firstnames
-    fullNames().then((data) => {
-        res.render("signedby", {
-            signers: data.rows,
+    } else {
+        fullNames().then((data) => {
+            res.render("signedby", {
+                signers: data.rows,
+            });
         });
-    });
+    }
 });
 
 app.get("/privacy", (req, res) => {
-    res.render("privacy");
+    res.render("privacy", {
+        Title: "Privacy Policy",
+    });
 });
 
 app.get("*", (req, res) => {
