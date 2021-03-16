@@ -1,10 +1,11 @@
-CREATE TABLE signature (
-    id         SERIAL PRIMARY KEY,
-    first_name VARCHAR NOT NULL CHECK (first_name != ''),
-    last_name  VARCHAR NOT NULL CHECK (last_name != ''),
-    signature  VARCHAR NOT NULL CHECK (signature != ''),
-    timestamp  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+DROP TABLE IF EXISTS signature;
+
+CREATE TABLE signatures(
+    id SERIAL PRIMARY KEY,
+    signature TEXT NOT NULL,
+    user_id INTEGER NOT NULL REFERENCES users(id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)
 
 CREATE TABLE users(
     id SERIAL PRIMARY KEY,

@@ -9,6 +9,9 @@
     {{#if error}}
         {{>duplicate-email}}
     {{/if}}
+    {{#if registered}}
+        {{>registered}}
+    {{/if}}
     <form method="POST">
     <div id="form-and-button">
     <div id="form">

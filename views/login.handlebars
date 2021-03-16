@@ -1,0 +1,38 @@
+<div id="page">
+     <div id="grandmaEmoji">
+         👵🏻
+    </div>
+    <div class="demands">
+        <h1>Join the campaign to get a better deal for Grandmas</h1>
+        <h2>Login to see how you can make a difference</h2>
+        <h3 class = "registered">New activist? <a href = "/register">Register now!</a></h3>
+    </div>
+    <form method="POST">
+    <div id="form-and-button">
+    <div id="form">
+    <div class="userInfo">
+
+         
+            <input name="email" placeholder="E-Mail" required/>
+            <input name="password" type="password" placeholder="Password" required/>
+        
+    </div>
+    
+    <input type="hidden" name="_csrf" value="{{csrfToken}}">
+    
+    </div>
+  
+    <button type="submit" id="submit">Login</button>
+     </div>
+    </form>
+                {{#if wrongPassword}}
+            {{>wrongPassword}}
+            {{/if}}
+            {{#if noUser}}
+            {{>noUser}}
+            {{/if}}
+
+
+
+
+ </div>

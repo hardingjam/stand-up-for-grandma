@@ -5,6 +5,8 @@ const {
     autograph,
     fullNames,
     createUser,
+    login,
+    getPassword,
 } = require("./db");
 const app = express();
 const hb = require("express-handlebars");
@@ -50,23 +52,76 @@ app.get("/logout", (req, res) => {
 
 app.get("/", (req, res) => {
     console.log("req.session in slash route: ", req.session);
-    if (req.session.signatureId) {
-        res.redirect("/thanks");
-    } else {
+    if (req.session.userId) {
         res.redirect("/petition");
+    } else {
+        res.redirect("/login");
     }
 });
 
 app.get("/register", (req, res) => {
-    console.log("req.session in register route: ", req.session);
-    res.render("register");
+    console.log("userId: ", req.session.userId);
+    if (req.session.userId) {
+        res.render("register", {
+            registered: true,
+        });
+    } else {
+        res.render("register");
+    }
+});
+
+app.get("/login", (req, res) => {
+    res.render("login");
+});
+
+app.post("/login", (req, res) => {
+    console.log("posted to Login");
+    const { email, password } = req.body;
+    getPassword(email)
+        .then(({ rows }) => {
+            compare(password, rows[0].password)
+                .then((match) => {
+                    console.log("match: ", match);
+                    if (match) {
+                        console.log("successful login!");
+                        req.session.userId = rows[0].id;
+                        res.redirect("/petition");
+                    } else {
+                        res.render("login", {
+                            wrongPassword: true,
+                        });
+                    }
+                })
+                .catch((err) => {
+                    console.log("Wrong password! ", err);
+                    res.render("login", {
+                        wrongPassword: true,
+                    });
+                });
+        })
+        .catch((err) => {
+            console.log("error: ", err);
+            res.render("login", {
+                noUser: true,
+            });
+        });
+});
+
+app.get("/petition", (req, res) => {
+    if (!req.session.userId) {
+        res.redirect("/login");
+    }
+    console.log("req.session in peitions route: ", req.session);
+    res.render("petition", {
+        title: "Petition",
+    });
 });
 
 app.post("/petition", (req, res) => {
-    const { firstName, lastName, signature } = req.body;
-    addSignature(firstName, lastName, signature).then((data) => {
+    const userId = req.session.userId;
+    const { signature } = req.body;
+    addSignature(userId, signature).then((data) => {
         console.log("submitted signature");
-        console.log("singee ID: ", data.rows[0].id);
         req.session.signatureId = data.rows[0].id;
         res.redirect("thanks");
     });
@@ -75,48 +130,25 @@ app.post("/petition", (req, res) => {
 app.post("/register", (req, res) => {
     const { firstName, lastName, email, age, country, password } = req.body;
     hash(password).then((hash) => {
-        createUser(firstName, lastName, email, age, country, hash).then(
-            (data) => {
-                console.log("data.rows[0].id: ", data.rows[0].id);
-                req.session.userId = data.rows[0].id;
+        createUser(firstName, lastName, email, age, country, hash)
+            .then(({ rows }) => {
+                console.log(rows);
+                req.session.userId = rows[0].id;
                 res.redirect("/petition");
-            }
-        );
+            })
+            .catch((err) => {
+                console.log("error", err);
+                res.render("register", {
+                    error: true,
+                });
+            });
     });
 });
 
-// app.post("/login", (req, res) => {
-const userPwFromBody = "mypassword";
-const demoHash = "$2a$10$7h7E4/5jOE5x0P5cBvN/4Oqk5s2pkZwFl8aZGD62FpR5g6g6dM4T6";
-// take the email from the req.body
-// use it to look up the hashed PW from our users table
-// then we have the password from req.body and a hashed PW...
-compare(userPwFromBody, demoHash).then((match) => {
-    // match is a boolean
-    console.log("match: ", match);
-    // if there is a match, add something to req.session (cookies) and then redirect to the petition route
-
-    // if there is NO match, rerender the login route but with an error message.
-    // if the email address IS in our table, we can say the password was wrong
-    // if the email address ISN'T, we can say that the user does not exist
-});
-// });
-
-app.get("/petition", (req, res) => {
-    console.log("req.session in peitions route: ", req.session);
-    if (req.session.signatureId) {
-        res.redirect("/thanks");
-    } else {
-        getSignatures().then((data) => {
-            const signeesData = data.rows;
-            res.render("petition", {
-                title: "Petition",
-            });
-        });
-    }
-});
-
 app.get("/thanks", (req, res) => {
+    if (!req.session.userId) {
+        res.redirect("/login");
+    }
     const signerId = req.session.signatureId;
     console.log("signerId:", signerId);
     autograph(signerId).then((data) => {
@@ -130,7 +162,9 @@ app.get("/thanks", (req, res) => {
 });
 
 app.get("/signedby", (req, res) => {
-    req.statusCode = 200;
+    if (!req.session.userId) {
+        res.redirect("/login");
+    }
     console.log(req.statusCode);
     // the data i want is only the firstnames
     fullNames().then((data) => {
@@ -142,6 +176,12 @@ app.get("/signedby", (req, res) => {
 
 app.get("/privacy", (req, res) => {
     res.render("privacy");
+});
+
+app.get("*", (req, res) => {
+    if (!req.session.userId) {
+        res.redirect("/login");
+    }
 });
 
 app.listen(8080, () => console.log("listening on 8080..."));

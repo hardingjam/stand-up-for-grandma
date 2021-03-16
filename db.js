@@ -4,7 +4,6 @@ const db = spicedPg("postgres:jharding@localhost/petition");
 // tells spicedPg to tell postgres to look : in the directory : with a password : and a name of a database
 
 module.exports.getSignatures = function () {
-    console.log("getting signatures");
     return db.query("SELECT * FROM signature;");
 };
 
@@ -36,9 +35,23 @@ module.exports.createUser = function (
     return db.query(query, params);
 };
 
-module.exports.addSignature = function (firstName, lastName, signature) {
-    const query = `INSERT INTO signature (first_name, last_name, signature) VALUES ($1, $2, $3) RETURNING id;`;
+module.exports.addSignature = function (signature, userId) {
+    const query = `INSERT INTO signatures (signature, userId) VALUES ($1, $2) RETURNING id;`;
     // returning id
-    const params = [firstName, lastName, signature];
+    const params = [signature, userId];
+    // returning a promise to server.js
+    // without return, server.js will not get the data and .thens and .catches will not happen
+    return db.query(query, params);
+};
+
+module.exports.getPassword = function (email) {
+    const query = `SELECT password, id FROM users WHERE email = $1;`;
+    const params = [email];
+    return db.query(query, params);
+};
+
+module.exports.checkForSig = function (userId) {
+    const query = `SELECT signature FROM signatures WHERE userId = $1;`;
+    const params = [userId];
     return db.query(query, params);
 };
