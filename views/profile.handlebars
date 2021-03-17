@@ -1,0 +1,31 @@
+ <div id="page">
+     <div id="grandmaEmoji">
+         👵🏻
+    </div>
+    <div class="demands">
+        <h1>Granny loves you</h1>
+        <h2>Give us some more information, if you want to</h2> 
+    </div>
+    <form method="POST">
+    <div id="form-and-button">
+    <div id="form">
+    <div class="userInfo">
+            <input name="age" placeholder="Age" type="number" max="120" />
+            <input name="city" placeholder="City" />
+            <input name="url" placeholder="Website" />
+            {{!-- <input name="re-enter" type="password" placeholder="Re-enter your password" required> --}}
+            {{!-- <div id="results"></div> --}}
+    </div>
+    
+    <input type="hidden" name="_csrf" value="{{csrfToken}}">
+    
+    </div>
+  
+    <button type="submit" id="submit">Update Profile</button>
+     </div>
+    </form>
+
+
+
+
+ </div>

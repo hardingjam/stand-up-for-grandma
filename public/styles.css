@@ -195,6 +195,13 @@ footer {
     width: 100%;
 }
 
+.loggedIn {
+    position: absolute;
+    left: 5px;
+    text-decoration: none;
+    color: #336d88;
+}
+
 .signers {
     column-count: 3;
 }
@@ -207,4 +214,9 @@ footer {
     background-color: #d8e2dc;
     transition: 600ms;
     cursor: pointer;
+}
+
+#page {
+    max-width: 600px;
+    align-self: center;
 }

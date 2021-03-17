@@ -1,13 +1,13 @@
 const express = require("express");
 const {
-    getSignatures,
     addSignature,
     autograph,
     fullNames,
     createUser,
-    login,
     getPassword,
     checkForSig,
+    updateProfile,
+    checkUrl,
 } = require("./db");
 const app = express();
 const hb = require("express-handlebars");
@@ -78,6 +78,24 @@ app.get("/register", (req, res) => {
     }
 });
 
+app.post("/register", (req, res) => {
+    const { firstName, lastName, email, password } = req.body;
+    hash(password).then((hash) => {
+        createUser(firstName, lastName, email, hash)
+            .then(({ rows }) => {
+                console.log(rows);
+                req.session.userId = rows[0].id;
+                res.redirect("/petition");
+            })
+            .catch((err) => {
+                console.log("error", err);
+                res.render("register", {
+                    error: true,
+                });
+            });
+    });
+});
+
 app.get("/login", (req, res) => {
     res.render("login", {
         Title: "Please Log In",
@@ -122,6 +140,29 @@ app.post("/login", (req, res) => {
         });
 });
 
+app.get("/profile", (req, res) => {
+    if (!req.session.userId) {
+        res.redirect("/login");
+    } else {
+        console.log(req.session.userId);
+        res.render("profile");
+    }
+});
+
+app.post("/profile", (req, res) => {
+    const { age, city } = req.body;
+    const url = checkUrl(req.body.url);
+    const userId = req.session.userId;
+    updateProfile(age, city, url, userId)
+        .then(({ rows }) => {
+            console.log(rows);
+            res.redirect("/");
+        })
+        .catch((err) => {
+            console.log("error in profile POST route: ", err);
+        });
+});
+
 app.get("/petition", (req, res) => {
     if (!req.session.userId) {
         res.redirect("/login");
@@ -147,24 +188,6 @@ app.post("/petition", (req, res) => {
         .catch((err) => {
             console.log("error: ", err);
         });
-});
-
-app.post("/register", (req, res) => {
-    const { firstName, lastName, email, age, country, password } = req.body;
-    hash(password).then((hash) => {
-        createUser(firstName, lastName, email, age, country, hash)
-            .then(({ rows }) => {
-                console.log(rows);
-                req.session.userId = rows[0].id;
-                res.redirect("/petition");
-            })
-            .catch((err) => {
-                console.log("error", err);
-                res.render("register", {
-                    error: true,
-                });
-            });
-    });
 });
 
 app.get("/thanks", (req, res) => {

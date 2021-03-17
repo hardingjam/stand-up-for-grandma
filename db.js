@@ -8,7 +8,9 @@ const db = spicedPg("postgres:jharding@localhost/petition");
 
 module.exports.autograph = function (signatureId) {
     const query = `SELECT signatures.signature AS "signature", users.first_name AS "name"
-                    FROM signatures JOIN users ON signatures.user_id=users.id
+                    FROM signatures 
+                    JOIN users 
+                    ON signatures.user_id=users.id
                     WHERE users.id= $1;`;
     // refactor to prevent SQL injection
     const params = [signatureId];
@@ -20,16 +22,9 @@ module.exports.fullNames = function () {
     return db.query(query);
 };
 
-module.exports.createUser = function (
-    firstName,
-    lastName,
-    email,
-    age,
-    country,
-    password
-) {
-    const query = `INSERT INTO users (first_name, last_name, email, age, country, password) VALUES ($1, $2, $3, $4, $5, $6) returning id;`;
-    const params = [firstName, lastName, email, age, country, password];
+module.exports.createUser = function (firstName, lastName, email, password) {
+    const query = `INSERT INTO users (first_name, last_name, email, password) VALUES ($1, $2, $3, $4) returning id;`;
+    const params = [firstName, lastName, email, password];
     return db.query(query, params);
 };
 
@@ -52,4 +47,18 @@ module.exports.checkForSig = function (userId) {
     const query = `SELECT signature, id FROM signatures WHERE user_id = $1;`;
     const params = [userId];
     return db.query(query, params);
+};
+
+module.exports.updateProfile = function (age, city, url, userId) {
+    const query = `INSERT INTO user_profiles (age, city, url, user_id) VALUES ($1, $2, $3, $4);`;
+    const params = [age, city, url, userId];
+    return db.query(query, params);
+};
+
+module.exports.checkUrl = function (url) {
+    if (url.startsWith("https://") || url.startsWith("http://")) {
+        return url;
+    } else {
+        return "https://" + url;
+    }
 };
