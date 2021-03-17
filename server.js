@@ -9,6 +9,7 @@ const {
     updateProfile,
     checkUrl,
     signersInfo,
+    citySigners,
 } = require("./db");
 const app = express();
 const hb = require("express-handlebars");
@@ -49,19 +50,18 @@ app.set("view engine", "handlebars");
 
 // LOCAL VARS
 
-app.locals.lowerCase = function (str) {
-    return str.toLowerCase();
-};
+// set once for all
 
 app.get("/logout", (req, res) => {
     req.session = null;
     res.redirect("/");
+    app.locals.fullName = null;
 });
 
 app.get("/", (req, res) => {
     console.log("req.session in slash route: ", req.session);
     if (req.session.userId) {
-        app.locals.fullName = fullNames(req.session.userId);
+        // .then here and THEN update app.locals, check for that on the renders....
         if (req.session.signatureId) {
             res.redirect("/thanks");
         } else {
@@ -91,9 +91,15 @@ app.post("/register", (req, res) => {
     hash(password).then((hash) => {
         createUser(firstName, lastName, email, hash)
             .then(({ rows }) => {
-                console.log(rows);
                 req.session.userId = rows[0].id;
-                res.redirect("/petition");
+                fullNames(req.session.userId)
+                    .then((data) => {
+                        app.locals.fullName = data.rows[0];
+                        res.redirect("/petition");
+                    })
+                    .catch((err) => {
+                        console.log("error in fullNames call: ", err);
+                    });
             })
             .catch((err) => {
                 console.log("error", err);
@@ -120,6 +126,13 @@ app.post("/login", (req, res) => {
                 if (match) {
                     console.log("successful login!");
                     req.session.userId = rows[0].id;
+                    fullNames(req.session.userId)
+                        .then((data) => {
+                            app.locals.fullName = data.rows[0];
+                        })
+                        .catch((err) => {
+                            console.log("error in fullNames call: ", err);
+                        });
                     const user = rows[0].id;
                     checkForSig(user)
                         .then(({ rows }) => {
@@ -203,7 +216,6 @@ app.get("/thanks", (req, res) => {
         res.redirect("/login");
     }
     autograph(req.session.userId).then(({ rows }) => {
-        console.log(rows[0]);
         const { name, signature } = rows[0];
         res.render("thanks", {
             title: "Thank you!",
@@ -218,12 +230,41 @@ app.get("/signedby", (req, res) => {
         res.redirect("/login");
     } else {
         signersInfo().then((data) => {
-            console.log(data.rows);
             res.render("signedby", {
                 signers: data.rows,
+                helpers: {
+                    lowerCase(str) {
+                        return str.toLowerCase();
+                    },
+                    capitalise(str) {
+                        return str.charAt(0).toUpperCase() + str.slice(1);
+                    },
+                },
             });
         });
     }
+});
+
+app.get("/signers/:city", (req, res) => {
+    const city = req.params.city;
+    citySigners(city)
+        .then((data) => {
+            res.render("signedby", {
+                signers: data.rows,
+                city: city,
+                helpers: {
+                    lowerCase(str) {
+                        return str.toLowerCase();
+                    },
+                    capitalise(str) {
+                        return str.charAt(0).toUpperCase() + str.slice(1);
+                    },
+                },
+            });
+        })
+        .catch((err) => {
+            console.log("error in citySigners: ", err);
+        });
 });
 
 app.get("/privacy", (req, res) => {
@@ -235,6 +276,8 @@ app.get("/privacy", (req, res) => {
 app.get("*", (req, res) => {
     if (!req.session.userId) {
         res.redirect("/login");
+    } else {
+        console.log("catchall");
     }
 });
 

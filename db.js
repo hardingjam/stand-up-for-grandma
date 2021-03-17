@@ -18,7 +18,8 @@ module.exports.autograph = function (signatureId) {
 };
 
 module.exports.fullNames = function (userId) {
-    const query = `SELECT first_name, last_name FROM users
+    const query = `SELECT first_name AS "first", last_name AS "last" 
+                    FROM users
                     WHERE id = $1;`;
     const params = [userId];
     return db.query(query, params);
@@ -51,9 +52,14 @@ module.exports.checkForSig = function (userId) {
     return db.query(query, params);
 };
 
-module.exports.updateProfile = function (age, city, url, userId) {
+module.exports.updateProfile = function (
+    age = null,
+    city = null,
+    url = null,
+    userId
+) {
     const query = `INSERT INTO user_profiles (age, city, url, user_id) VALUES ($1, $2, $3, $4);`;
-    const params = [age, city, url, userId];
+    const params = [age || null, city || null, url || null, userId];
     return db.query(query, params);
 };
 
@@ -70,10 +76,23 @@ module.exports.checkUrl = function (url) {
 module.exports.signersInfo = function () {
     const query = `SELECT users.first_name AS "first", users.last_name AS "last", 
                     user_profiles.city AS "city", user_profiles.age AS "age", user_profiles.url AS "url"
-                    FROM users
+                    FROM signatures
+                    LEFT JOIN users
+                    ON signatures.user_id = users.id
+                    LEFT JOIN user_profiles
+                    ON users.id = user_profiles.user_id;`;
+    return db.query(query);
+};
+
+module.exports.citySigners = function (city) {
+    const query = `SELECT users.first_name AS "first", users.last_name AS "last", 
+                    user_profiles.age AS "age", user_profiles.url AS "url"
+                    FROM signatures
+                    LEFT JOIN users
+                    ON signatures.user_id = users.id
                     LEFT JOIN user_profiles
                     ON users.id = user_profiles.user_id
-                    LEFT JOIN signatures
-                    ON signatures.user_id = users.id;`;
-    return db.query(query);
+                    WHERE LOWER(user_profiles.city) = $1;`;
+    const params = [city];
+    return db.query(query, params);
 };
