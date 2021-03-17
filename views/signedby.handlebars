@@ -9,7 +9,7 @@
     
     {{#signers}}
         
-        <p>{{first_name}} {{last_name}}</p>
+        <p>{{#if url}}<a href={{url}} target="_blank" rel="noopener noreferrer">{{/if}}{{first}} {{last}}</a>{{#if age}}, {{age}}{{/if}}{{#if city}} - <a href="/signers/{{city}}">{{city}}</a>{{/if}}</p>
 
     {{/signers}}
     </div>

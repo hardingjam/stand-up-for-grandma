@@ -17,9 +17,11 @@ module.exports.autograph = function (signatureId) {
     return db.query(query, params);
 };
 
-module.exports.fullNames = function () {
-    const query = `SELECT first_name, last_name FROM users;`;
-    return db.query(query);
+module.exports.fullNames = function (userId) {
+    const query = `SELECT first_name, last_name FROM users
+                    WHERE id = $1;`;
+    const params = [userId];
+    return db.query(query, params);
 };
 
 module.exports.createUser = function (firstName, lastName, email, password) {
@@ -56,9 +58,22 @@ module.exports.updateProfile = function (age, city, url, userId) {
 };
 
 module.exports.checkUrl = function (url) {
-    if (url.startsWith("https://") || url.startsWith("http://")) {
-        return url;
-    } else {
-        return "https://" + url;
+    if (url) {
+        if (url.startsWith("https://") || url.startsWith("http://")) {
+            return url;
+        } else {
+            return "https://" + url;
+        }
     }
+};
+
+module.exports.signersInfo = function () {
+    const query = `SELECT users.first_name AS "first", users.last_name AS "last", 
+                    user_profiles.city AS "city", user_profiles.age AS "age", user_profiles.url AS "url"
+                    FROM users
+                    LEFT JOIN user_profiles
+                    ON users.id = user_profiles.user_id
+                    LEFT JOIN signatures
+                    ON signatures.user_id = users.id;`;
+    return db.query(query);
 };

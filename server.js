@@ -8,6 +8,7 @@ const {
     checkForSig,
     updateProfile,
     checkUrl,
+    signersInfo,
 } = require("./db");
 const app = express();
 const hb = require("express-handlebars");
@@ -46,6 +47,12 @@ app.engine("handlebars", hb());
 app.set("view engine", "handlebars");
 // res.render with the name of your view file (minus .handebars)
 
+// LOCAL VARS
+
+app.locals.lowerCase = function (str) {
+    return str.toLowerCase();
+};
+
 app.get("/logout", (req, res) => {
     req.session = null;
     res.redirect("/");
@@ -54,6 +61,7 @@ app.get("/logout", (req, res) => {
 app.get("/", (req, res) => {
     console.log("req.session in slash route: ", req.session);
     if (req.session.userId) {
+        app.locals.fullName = fullNames(req.session.userId);
         if (req.session.signatureId) {
             res.redirect("/thanks");
         } else {
@@ -209,7 +217,8 @@ app.get("/signedby", (req, res) => {
     if (!req.session.userId) {
         res.redirect("/login");
     } else {
-        fullNames().then((data) => {
+        signersInfo().then((data) => {
+            console.log(data.rows);
             res.render("signedby", {
                 signers: data.rows,
             });

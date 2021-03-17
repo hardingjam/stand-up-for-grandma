@@ -14,7 +14,9 @@
 </head>
 <body>
 <header class="navbar">
-    <div class="loggedIn">Logged in</div>
+    {{#if loggedIn}}
+        <div class="loggedIn">Logged in as {{fullName}}</div>
+    {{/if}}
         <a href = "/">Home | </a>
         <a href = "/signedby">Signers  | </a>
         <a href = "/privacy">Privacy  | </a>

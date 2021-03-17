@@ -202,10 +202,6 @@ footer {
     color: #336d88;
 }
 
-.signers {
-    column-count: 3;
-}
-
 .country {
     transition: 200ms;
 }
