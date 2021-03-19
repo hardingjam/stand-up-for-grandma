@@ -1,4 +1,5 @@
-let tempSession, session = {};
+let tempSession,
+    session = {};
 
 module.exports = () => (req, res, next) => {
     req.session = tempSession || session;
@@ -6,6 +7,6 @@ module.exports = () => (req, res, next) => {
     next();
 };
 
-module.exports.mockSession = sess => session = sess;
+module.exports.mockSession = (sess) => (session = sess);
 
-module.exports.mockSessionOnce = sess => tempSession = sess;
+module.exports.mockSessionOnce = (sess) => (tempSession = sess);

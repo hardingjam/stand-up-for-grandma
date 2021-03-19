@@ -32,6 +32,10 @@ const cookieParser = require("cookie-parser");
 const cookieSession = require("cookie-session");
 const csurf = require("csurf");
 
+var dbUrl =
+    process.env.DATABASE_URL ||
+    "postgres://petition:password@localhost:5432/petition";
+
 const { hash, compare } = require("./bc");
 app.use(cookieParser());
 app.use(express.static("./public"));
@@ -259,33 +263,48 @@ app.get("/signedby", requireLoggedInUser, requireSignature, (req, res) => {
                 capitalise(str) {
                     return str.charAt(0).toUpperCase() + str.slice(1);
                 },
+                underscore(str) {
+                    return str.replace(/ /g, "_");
+                },
             },
         });
     });
 });
 
-app.get("/signers/:city", requireLoggedInUser, requireSignature, (req, res) => {
-    const city = req.params.city;
-    console.log(req);
-    citySigners(city)
-        .then((data) => {
-            res.render("signedby", {
-                signers: data.rows,
-                city: city,
-                helpers: {
-                    lowerCase(str) {
-                        return str.toLowerCase();
+app.get(
+    "/signedby/:city",
+    requireLoggedInUser,
+    requireSignature,
+    (req, res) => {
+        const city = req.params.city.toLowerCase().replace(/_/g, " ");
+        console.log(city);
+        citySigners(city)
+            .then((data) => {
+                console.log(data.rows);
+                res.render("signedby", {
+                    signers: data.rows,
+                    city: city,
+                    helpers: {
+                        lowerCase(str) {
+                            return str.toLowerCase();
+                        },
+                        capitalise(str) {
+                            let regex = /(^|\s)\S/g;
+                            return str.replace(regex, (letter) =>
+                                letter.toUpperCase()
+                            );
+                        },
+                        spaceify(str) {
+                            return str.replace(/_/g, " ");
+                        },
                     },
-                    capitalise(str) {
-                        return str.charAt(0).toUpperCase() + str.slice(1);
-                    },
-                },
+                });
+            })
+            .catch((err) => {
+                console.log("error in citySigners: ", err);
             });
-        })
-        .catch((err) => {
-            console.log("error in citySigners: ", err);
-        });
-});
+    }
+);
 
 app.get("/privacy", (req, res) => {
     res.render("privacy", {
@@ -294,8 +313,8 @@ app.get("/privacy", (req, res) => {
 });
 
 app.get("/edit-profile", requireLoggedInUser, (req, res) => {
+    console.log(app.locals.loggedIn);
     getUserProfile(req.session.userId).then(({ rows }) => {
-        console.log(rows);
         res.render(
             "edit-profile",
             rows[0]
@@ -306,7 +325,8 @@ app.get("/edit-profile", requireLoggedInUser, (req, res) => {
 
 app.post("/edit-profile", requireLoggedInUser, (req, res) => {
     const userId = req.session.userId;
-    const { firstName, lastName, email, age, city, url, password } = req.body;
+    const { firstName, lastName, email, age, city, password } = req.body;
+    const url = checkUrl(req.body.url);
     if (password) {
         hash(password).then((hash) => {
             updateUsersPassword(firstName, lastName, email, userId, hash)

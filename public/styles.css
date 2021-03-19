@@ -15,7 +15,6 @@ body {
     margin-top: 60px;
     margin-left: 15%;
     margin-right: 15%;
-    overflow-y: scroll;
 }
 
 h1 {
@@ -114,6 +113,10 @@ input {
     border-radius: 10px;
 }
 
+.signers {
+    margin-top: 20px;
+}
+
 #signature {
     max-width: 200px;
     max-height: 100px;
@@ -123,7 +126,7 @@ input {
     cursor: url("/cursor.svg");
 }
 
-#form-and-button {
+.form-and-button {
     display: flex;
     justify-content: center;
     flex-direction: column;

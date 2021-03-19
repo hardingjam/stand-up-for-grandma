@@ -1,6 +1,7 @@
 const spicedPg = require("spiced-pg");
 
 const db = spicedPg(
+    // left hand side for heroku || right hand side for localhost //
     process.env.DATABASE_URL || "postgres:jharding@localhost/petition"
 );
 // tells spicedPg to tell postgres to look : in the directory : with a password : and a name of a database

@@ -16,6 +16,9 @@ module.exports.requireLoggedInUser = function (req, res, next) {
         app.locals.loggedIn = false;
         return res.redirect("/register");
     }
+    if (req.session.userId) {
+        app.locals.loggedIn = true;
+    }
     next();
 };
 

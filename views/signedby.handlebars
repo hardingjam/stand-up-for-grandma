@@ -1,7 +1,10 @@
 
-<h1>You are not alone{{#if city}} in {{capitalise city}}{{/if}}!</h1>
 
-<h2>Here's everyone else who signed...</h2>
+{{#if city}}<h1>Thank you, {{capitalise city}}!</h1>
+{{else}}<h1>You are not alone!</h1>{{/if}}
+{{#if city}}<h2>Here's everyone who signed in your hometown...</h2>
+{{else}}<h1>Here's everyone else who signed...</h1>{{/if}}
+
 
 
    
@@ -9,7 +12,7 @@
     
     {{#signers}}
         
-        <p>{{#if url}}<a href={{url}} target="_blank" rel="noopener noreferrer">{{/if}}{{first}} {{last}}</a>{{#if age}}, {{age}}{{/if}}{{#if city}} - <a href="/signers/{{lowerCase city}}">{{capitalise city}}</a>{{/if}}</p>
+        <p>{{#if url}}<a href={{url}} target="_blank" rel="noopener noreferrer">{{/if}}{{first}} {{last}}</a>{{#if age}}, {{age}}{{/if}}{{#if city}} - <a href="/signedby/{{underscore city}}">{{capitalise city}}</a>{{/if}}</p>
 
     {{/signers}}
     </div>
