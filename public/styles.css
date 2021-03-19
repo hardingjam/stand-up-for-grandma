@@ -268,4 +268,8 @@ footer {
     h2 {
         font-size: 1rem;
     }
+
+    footer {
+        position: fixed;
+    }
 }
