@@ -247,3 +247,25 @@ footer {
 #thanksbuttons > a {
     width: inherit;
 }
+
+@media only screen and (min-device-width: 375px) and (max-device-width: 812px) and (-webkit-min-device-pixel-ratio: 3) and (orientation: portrait) {
+    body {
+        overflow-y: scroll;
+    }
+
+    .loggedIn {
+        display: hidden;
+    }
+
+    .navbar > a {
+        font-size: 0.6rem;
+    }
+
+    h1 {
+        font-size: 1.2rem;
+    }
+
+    h2 {
+        font-size: 1rem;
+    }
+}
