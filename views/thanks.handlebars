@@ -1,8 +1,20 @@
+<div id="page">
+<div id="thanks">
+        <div id="grandmaEmoji">
+         👵🏻
+    </div>
 <h1>Thank you, {{name}}</h1>
 {{!-- Include the user name here --}}
 <h2>Your voice will help to make a difference!</h2>
 <h2>Your signature...</h2>
-<img id="signature" src="{{autograph}}">
-<h2><a href = "/signedby">See who else signed...</a></h2>
+<form method="POST">
+<div class = "form-and-button">
+<img id="signaturethanks" src="{{signature}}">
+<button id="submit">Change my signature</button>
+  <input type="hidden" name="_csrf" value="{{csrfToken}}">
+</form>
+</div>
 
-
+</div>
+</div>
+</div>

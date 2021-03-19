@@ -1,5 +1,5 @@
 
-    <div id="page" class="hidden">
+    <div id="page">
     <div class="demands">
     <h1>Join the campaign to get a better deal for Grandmas</h1>
     <h2>👵🏼 More mid-afternoon TV gameshows</h2>
@@ -8,11 +8,15 @@
     <h2>👵🏾 Room temperature increased to 30°C </h2>
     </div>
     <form method="POST">
-    <div id="form-and-button">
+    <div class="form-and-button">
     <div id="form">
      <div class="userInfo">
             <input id="hiddenInput" name="signature" type="hidden">
+            {{#if error}}
+                <p class = "error">Please enter your signature to continue</p>
+               {{else}} 
                   <p>Sign here to make a granny happy...</p>
+                  {{/if}}
                 <div id="sig">
                     <canvas id="canv" width="300" height="100"></canvas>
                     <button type="button" id="clear">Clear signature</button>

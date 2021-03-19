@@ -240,7 +240,3 @@ footer {
     width: 600;
     height: 200;
 }
-
-#thanksbuttons > a {
-    width: inherit;
-}

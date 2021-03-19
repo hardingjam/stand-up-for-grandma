@@ -1,5 +1,5 @@
-DROP TABLE IF EXISTS signatures; 
-DROP TABLE IF EXISTS users;
+-- DROP TABLE IF EXISTS signatures; 
+-- DROP TABLE IF EXISTS users;
 
 CREATE TABLE signatures(
     id SERIAL PRIMARY KEY,
@@ -22,5 +22,7 @@ CREATE TABLE user_profiles (
     age INT,
     city VARCHAR(255),
     url VARCHAR(255), 
-    user_id INT NOT NULL REFERENCES users(id)
+    user_id INT NOT NULL REFERENCES users(id) UNIQUE
 );
+
+-- Don't forget tot RUN the table command after updating it.

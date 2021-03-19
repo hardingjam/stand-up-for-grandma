@@ -11,10 +11,6 @@
         console.log("mouseenter");
     });
 
-    $(window).on("load", function () {
-        allContent.fadeIn(800);
-    });
-
     canvas.mousedown(function (e) {
         drawing = true;
         canvas.toggleClass(".pencursor");

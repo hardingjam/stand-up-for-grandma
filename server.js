@@ -1,4 +1,8 @@
 const express = require("express");
+const app = express();
+// the express app is created. It's a node server with a lot of functionality.
+// part of that is routing.
+exports.app = app;
 const {
     addSignature,
     autograph,
@@ -10,8 +14,19 @@ const {
     checkUrl,
     signersInfo,
     citySigners,
+    getUserProfile,
+    updateUsers,
+    updateUsersPassword,
+    updateOrCreate,
+    removeSignature,
 } = require("./db");
-const app = express();
+const {
+    requireLoggedOutUser,
+    requireLoggedInUser,
+    requireSignature,
+    requireNoSignature,
+} = require("./middleware");
+
 const hb = require("express-handlebars");
 const cookieParser = require("cookie-parser");
 const cookieSession = require("cookie-session");
@@ -23,7 +38,7 @@ app.use(express.static("./public"));
 
 app.use(
     cookieSession({
-        secret: "I love CAFC",
+        secret: "I love you",
         maxAge: 1000 * 60 * 60 * 24 * 14,
         // two weeks cookie time!
     })
@@ -48,32 +63,30 @@ app.engine("handlebars", hb());
 app.set("view engine", "handlebars");
 // res.render with the name of your view file (minus .handebars)
 
-// LOCAL VARS
-
-// set once for all
-
 app.get("/logout", (req, res) => {
     req.session = null;
     res.redirect("/");
     app.locals.fullName = null;
+    app.locals.loggedIn = null;
 });
 
+// WE can use multiple arguments in get routes, chained together with next()
+// in a GET route all functions after the first one will RUN
+
 app.get("/", (req, res) => {
-    console.log("req.session in slash route: ", req.session);
     if (req.session.userId) {
         // .then here and THEN update app.locals, check for that on the renders....
-        if (req.session.signatureId) {
-            res.redirect("/thanks");
-        } else {
-            res.redirect("/petition");
-        }
+        app.locals.loggedIn = true;
+    }
+    if (req.session.signatureId) {
+        app.locals.signed = true;
+        return res.redirect("/thanks");
     } else {
-        res.redirect("/login");
+        return res.redirect("/register");
     }
 });
 
-app.get("/register", (req, res) => {
-    console.log("userId: ", req.session.userId);
+app.get("/register", requireLoggedOutUser, (req, res) => {
     if (req.session.userId) {
         res.render("register", {
             registered: true,
@@ -86,23 +99,24 @@ app.get("/register", (req, res) => {
     }
 });
 
-app.post("/register", (req, res) => {
+app.post("/register", requireLoggedOutUser, (req, res) => {
     const { firstName, lastName, email, password } = req.body;
     hash(password).then((hash) => {
         createUser(firstName, lastName, email, hash)
             .then(({ rows }) => {
                 req.session.userId = rows[0].id;
                 fullNames(req.session.userId)
-                    .then((data) => {
-                        app.locals.fullName = data.rows[0];
-                        res.redirect("/petition");
+                    .then(({ rows }) => {
+                        app.locals.fullName = rows[0];
+                        app.locals.loggedIn = true;
+                        res.redirect("/profile");
                     })
                     .catch((err) => {
                         console.log("error in fullNames call: ", err);
                     });
             })
             .catch((err) => {
-                console.log("error", err);
+                console.log("error in registration", err);
                 res.render("register", {
                     error: true,
                 });
@@ -110,25 +124,28 @@ app.post("/register", (req, res) => {
     });
 });
 
-app.get("/login", (req, res) => {
+app.get("/login", requireLoggedOutUser, (req, res) => {
     res.render("login", {
         Title: "Please Log In",
+        email: req.session.email,
     });
 });
 
-app.post("/login", (req, res) => {
+app.post("/login", requireLoggedOutUser, (req, res) => {
     console.log("posted to Login");
     const { email, password } = req.body;
+    req.session.email = email;
+    console.log(email);
     getPassword(email)
         .then(({ rows }) => {
             compare(password, rows[0].password).then((match) => {
                 console.log("match: ", match);
                 if (match) {
-                    console.log("successful login!");
+                    app.locals.loggedIn = true;
                     req.session.userId = rows[0].id;
                     fullNames(req.session.userId)
-                        .then((data) => {
-                            app.locals.fullName = data.rows[0];
+                        .then(({ rows }) => {
+                            app.locals.fullName = rows[0];
                         })
                         .catch((err) => {
                             console.log("error in fullNames call: ", err);
@@ -138,9 +155,9 @@ app.post("/login", (req, res) => {
                         .then(({ rows }) => {
                             if (rows[0]) {
                                 req.session.signatureId = rows[0].id;
-                                res.redirect("/thanks");
+                                return res.redirect("/thanks");
                             } else {
-                                res.redirect("/petition");
+                                return res.redirect("/petition");
                             }
                         })
                         .catch((err) => {
@@ -149,6 +166,7 @@ app.post("/login", (req, res) => {
                 } else {
                     res.render("login", {
                         wrongPassword: true,
+                        email: email,
                     });
                 }
             });
@@ -161,35 +179,28 @@ app.post("/login", (req, res) => {
         });
 });
 
-app.get("/profile", (req, res) => {
-    if (!req.session.userId) {
-        res.redirect("/login");
-    } else {
-        console.log(req.session.userId);
-        res.render("profile");
-    }
+app.get("/profile", requireLoggedInUser, (req, res) => {
+    console.log(req.session.userId);
+    res.render("profile");
 });
 
-app.post("/profile", (req, res) => {
+app.post("/profile", requireLoggedInUser, (req, res) => {
     const { age, city } = req.body;
     const url = checkUrl(req.body.url);
     const userId = req.session.userId;
     updateProfile(age, city, url, userId)
         .then(({ rows }) => {
             console.log(rows);
-            res.redirect("/");
+            res.redirect("/petition");
         })
         .catch((err) => {
             console.log("error in profile POST route: ", err);
         });
 });
 
-app.get("/petition", (req, res) => {
-    if (!req.session.userId) {
-        res.redirect("/login");
-    }
+app.get("/petition", requireLoggedInUser, requireNoSignature, (req, res) => {
     if (req.session.signatureId) {
-        res.redirect("/thanks");
+        return res.redirect("/thanks");
     } else {
         res.render("petition", {
             title: "Petition",
@@ -197,56 +208,65 @@ app.get("/petition", (req, res) => {
     }
 });
 
-app.post("/petition", (req, res) => {
+app.post("/petition", requireLoggedInUser, requireNoSignature, (req, res) => {
     const userId = req.session.userId;
     const { signature } = req.body;
-    addSignature(signature, userId)
+    if (signature) {
+        addSignature(signature, userId)
+            .then(({ rows }) => {
+                console.log("submitted signature");
+                req.session.signatureId = rows[0].id;
+                app.locals.signed = true;
+                res.redirect("/thanks");
+            })
+            .catch((err) => {
+                console.log("error: ", err);
+            });
+    } else {
+        res.render("petition", {
+            error: true,
+        });
+    }
+});
+
+app.get("/thanks", requireLoggedInUser, requireSignature, (req, res) => {
+    autograph(req.session.userId).then(({ rows }) => {
+        res.render("thanks", rows[0]);
+    });
+});
+
+app.post("/thanks", requireLoggedInUser, requireSignature, (req, res) => {
+    console.log("removing sig");
+    removeSignature(req.session.userId)
         .then((data) => {
-            console.log("submitted signature");
-            req.session.signatureId = data.rows[0].id;
-            res.redirect("/thanks");
+            req.session.signatureId = null;
+            app.locals.signed = false;
+            res.redirect("/petition");
         })
         .catch((err) => {
-            console.log("error: ", err);
+            console.log("error is delete sig: ", err);
         });
 });
 
-app.get("/thanks", (req, res) => {
-    if (!req.session.userId) {
-        res.redirect("/login");
-    }
-    autograph(req.session.userId).then(({ rows }) => {
-        const { name, signature } = rows[0];
-        res.render("thanks", {
-            title: "Thank you!",
-            name: name,
-            autograph: signature,
+app.get("/signedby", requireLoggedInUser, requireSignature, (req, res) => {
+    signersInfo().then((data) => {
+        res.render("signedby", {
+            signers: data.rows,
+            helpers: {
+                lowerCase(str) {
+                    return str.toLowerCase();
+                },
+                capitalise(str) {
+                    return str.charAt(0).toUpperCase() + str.slice(1);
+                },
+            },
         });
     });
 });
 
-app.get("/signedby", (req, res) => {
-    if (!req.session.userId) {
-        res.redirect("/login");
-    } else {
-        signersInfo().then((data) => {
-            res.render("signedby", {
-                signers: data.rows,
-                helpers: {
-                    lowerCase(str) {
-                        return str.toLowerCase();
-                    },
-                    capitalise(str) {
-                        return str.charAt(0).toUpperCase() + str.slice(1);
-                    },
-                },
-            });
-        });
-    }
-});
-
-app.get("/signers/:city", (req, res) => {
+app.get("/signers/:city", requireLoggedInUser, requireSignature, (req, res) => {
     const city = req.params.city;
+    console.log(req);
     citySigners(city)
         .then((data) => {
             res.render("signedby", {
@@ -273,12 +293,52 @@ app.get("/privacy", (req, res) => {
     });
 });
 
-app.get("*", (req, res) => {
-    if (!req.session.userId) {
-        res.redirect("/login");
+app.get("/edit-profile", requireLoggedInUser, (req, res) => {
+    getUserProfile(req.session.userId).then(({ rows }) => {
+        console.log(rows);
+        res.render(
+            "edit-profile",
+            rows[0]
+            // render all the current information here.
+        );
+    });
+});
+
+app.post("/edit-profile", requireLoggedInUser, (req, res) => {
+    const userId = req.session.userId;
+    const { firstName, lastName, email, age, city, url, password } = req.body;
+    if (password) {
+        hash(password).then((hash) => {
+            updateUsersPassword(firstName, lastName, email, userId, hash)
+                .then((data) => {
+                    updateUsers(firstName, lastName, email, userId).then(
+                        (data) => {
+                            updateOrCreate(age, city, url, userId).then(
+                                (data) => {
+                                    res.redirect("/thanks").catch((err) => {
+                                        console.log(
+                                            "error in update/create ",
+                                            err
+                                        );
+                                    });
+                                }
+                            );
+                        }
+                    );
+                })
+                .catch((err) => {
+                    console.log("error in update profile with password: ", err);
+                });
+        });
     } else {
-        console.log("catchall");
+        updateUsers(firstName, lastName, email, userId).then((data) => {
+            updateOrCreate(age, city, url, userId).then((data) => {
+                res.redirect("/thanks").catch((err) => {
+                    console.log("error in update/create ", err);
+                });
+            });
+        });
     }
 });
 
-app.listen(8080, () => console.log("listening on 8080..."));
+app.listen(process.env.PORT || 8080);
