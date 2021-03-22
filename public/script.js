@@ -1,12 +1,11 @@
 (function () {
     console.log("connected");
-
+    console.log("connected again");
     const canvas = $("#canv");
     const ctx = $("#canv")[0].getContext("2d");
     let drawing = false;
     const clearButton = $("#clear");
     const sigInput = $("#hiddenInput");
-    const allContent = $("#page");
     canvas.mouseenter(function () {
         console.log("mouseenter");
     });
@@ -15,13 +14,13 @@
         drawing = true;
         canvas.toggleClass(".pencursor");
         ctx.beginPath();
-        ctx.moveTo(e.originalEvent.layerX, e.originalEvent.layerY - 15);
+        ctx.moveTo(e.originalEvent.layerX, e.originalEvent.layerY);
         // specify a style, which is always a colour
     });
 
     canvas.mousemove(function (e) {
         if (drawing) {
-            ctx.lineTo(e.originalEvent.layerX, e.originalEvent.layerY - 15);
+            ctx.lineTo(e.originalEvent.layerX, e.originalEvent.layerY);
             ctx.strokeStyle = "black";
             ctx.lineWidth = 3;
             ctx.stroke();
