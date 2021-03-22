@@ -333,16 +333,13 @@ app.post("/edit-profile", requireLoggedInUser, (req, res) => {
                 .then((data) => {
                     updateUsers(firstName, lastName, email, userId).then(
                         (data) => {
-                            updateOrCreate(age, city, url, userId).then(
-                                (data) => {
-                                    res.redirect("/thanks").catch((err) => {
-                                        console.log(
-                                            "error in update/create ",
-                                            err
-                                        );
-                                    });
-                                }
-                            );
+                            updateOrCreate(age, city, url, userId)
+                                .then((data) => {
+                                    res.redirect("/thanks");
+                                })
+                                .catch((err) => {
+                                    console.log("error in update/create ", err);
+                                });
                         }
                     );
                 })
@@ -352,11 +349,13 @@ app.post("/edit-profile", requireLoggedInUser, (req, res) => {
         });
     } else {
         updateUsers(firstName, lastName, email, userId).then((data) => {
-            updateOrCreate(age, city, url, userId).then((data) => {
-                res.redirect("/thanks").catch((err) => {
+            updateOrCreate(age, city, url, userId)
+                .then((data) => {
+                    res.redirect("/thanks");
+                })
+                .catch((err) => {
                     console.log("error in update/create ", err);
                 });
-            });
         });
     }
 });

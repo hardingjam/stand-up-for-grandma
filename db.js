@@ -151,28 +151,3 @@ module.exports.updateOrCreate = function (age, city, url, userId) {
     const params = [age || null, city || null, url || null, userId];
     return db.query(query, params);
 };
-
-// THREE UPDATE QUERIES FOR EDIT-PROFILE
-// update on USERS (first, last, email)
-// update on USERS (first, last, email, pw)
-// UPDATE on user_profiles (age, city, url)
-
-// updateUser
-// updateUserWithPw
-// updateUserProf
-
-// in post("/edit") do the logic, and send the appropriate export function
-
-// we run the user_profiles table regardless of whether the user updates that info.
-
-// some users can end up on the edit page without having a row on user_profiles.
-
-// If the user has NOT added a row in user_profiles, we do an UPSERT.
-
-// It attempts to INSERT a row, and if the row exists already, it will UPDATE it.
-
-// INSERT INTO actors (name, age, oscars)
-// VALUES ('Penelope', 43, 1)
-// on CONFLICT (name) // in the create table command for this column, we can insist that this value is unique.
-//                 //  This UNIQUE clause is what allows us to use the CONFLIC property
-// DO UPDATE SET age = 43, oscars = 1.
